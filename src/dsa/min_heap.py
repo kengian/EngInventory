@@ -13,19 +13,21 @@
 #   left child of i  = 2 * i + 1
 #   right child of i = 2 * i + 2
 
+from typing import Any, List
+
 
 class MinHeap:
     """A min-heap stored in a Python list."""
 
-    def __init__(self):
-        self.items = []
+    def __init__(self) -> None:
+        self.items: List[Any] = []
 
-    def insert(self, value):
+    def insert(self, value: Any) -> None:
         """Add a value, then move it up to its correct place. O(log n)"""
         self.items.append(value)
         self._bubble_up(len(self.items) - 1)
 
-    def extract_min(self):
+    def extract_min(self) -> Any:
         """Remove and return the smallest value. O(log n)"""
         if self.is_empty():
             raise IndexError("Cannot extract from an empty heap")
@@ -36,28 +38,28 @@ class MinHeap:
             self._bubble_down(0)         # ...and move it down
         return smallest
 
-    def peek_min(self):
+    def peek_min(self) -> Any:
         """Look at the smallest value without removing it. O(1)"""
         if self.is_empty():
             raise IndexError("Heap is empty")
         return self.items[0]
 
-    def heapify(self, values):
+    def heapify(self, values: List[Any]) -> None:
         """Turn a messy list into a valid heap. O(n)"""
         self.items = list(values)
         last_parent = len(self.items) // 2 - 1
         for i in range(last_parent, -1, -1):   # go backwards from the last parent
             self._bubble_down(i)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Return True if the heap has nothing. O(1)"""
         return len(self.items) == 0
 
-    def size(self):
+    def size(self) -> int:
         """How many values are in the heap. O(1)"""
         return len(self.items)
 
-    def _bubble_up(self, index):
+    def _bubble_up(self, index: int) -> None:
         """Swap a value up while it is smaller than its parent. O(log n)"""
         while index > 0:
             parent = (index - 1) // 2
@@ -67,7 +69,7 @@ class MinHeap:
             else:
                 break
 
-    def _bubble_down(self, index):
+    def _bubble_down(self, index: int) -> None:
         """Swap a value down while a child is smaller. O(log n)"""
         n = len(self.items)
         while True:
