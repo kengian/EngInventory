@@ -1,51 +1,38 @@
 # EngInventory - main entry point
-# (This is a tiny practice window. We will replace it with the real app later.)
 
+import logging
 import sys
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow,
-                               QPushButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QApplication
 
-
-class MainWindow(QMainWindow):
-    """The main window of the app."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.setWindowTitle("EngInventory")
-        self.resize(500, 300)
-        self.clicks = 0
-
-        # 1. Make the widgets
-        self.label = QLabel("Hello! Click the button.")
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.button = QPushButton("Click me")
-
-        # 2. Connect the signal (click) to the slot (our function)
-        self.button.clicked.connect(self.on_button_clicked)
-
-        # 3. Put them in a layout (top to bottom)
-        layout = QVBoxLayout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.button)
-
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
-
-    def on_button_clicked(self) -> None:
-        """Runs every time the button is clicked."""
-        self.clicks += 1
-        self.label.setText("You clicked " + str(self.clicks) + " time(s)!")
+from src.db.db_manager import DatabaseManager
+from src.services.app_logger import setup_logging
+from src.services.app_paths import ensure_folders, get_db_path
+from src.services.image_service import ImageService
+from src.services.item_service import ItemService
+from src.ui.main_window import MainWindow
 
 
 def main() -> int:
-    """Start the app and keep the window open until it is closed."""
+    """Set everything up, show the window, and clean up when it closes."""
+    data_dir = ensure_folders()                 # %LOCALAPPDATA%\EngInventory
+    setup_logging(data_dir)
+    logger = logging.getLogger("enginventory")
+    logger.info("APP_START")
+
+    db = DatabaseManager(get_db_path(data_dir))
+    db.initialize()
+    images = ImageService(data_dir)
+    service = ItemService(db, images)
+
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow(service)
     window.show()
-    return app.exec()
+    exit_code = app.exec()
+
+    db.close()
+    logger.info("APP_STOP")
+    return exit_code
 
 
 if __name__ == "__main__":
